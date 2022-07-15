@@ -32,3 +32,22 @@ amfe-flexible
 postcss-pxtorem
 vant官网
 版本是5.1.1
+
+### axios
+await 修饰一个Promise对象
+try{} catch(error){}
+1   res 拿到的是 axios 对本次请求 resolve 封装后的结果
+服务器返回的真正数据在 res.data
+服务器返回的状态码 res.status
+2   error 拿到的是 axios 对本次请求 reject 封装后的结果
+服务器返回的真正数据在 error.response.data
+服务器返回的状态码 error.response.status
+
+### vuex
+1   从vuex里面获取数据
+~~~ this.$store.state.变量名
+2   vuex的数据必须在vuex里修改数据
+  mutations 声明一个方法去修改
+  mutations 里的方法 第一个参数是state 第二个参数是传过来的数据
+3   怎么去调用mutations的方法
+  $store.commit(mutations里的方法名，参数)

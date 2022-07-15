@@ -8,13 +8,13 @@
     </van-nav-bar>
 
     <!-- 手机号、验证码表单 -->
-    <van-form @submit="login" class="form">
+    <van-form @submit="login" class="form" ref="form">
       <van-field
         v-model="mobile"
         name="mobile"
         type="number"
         placeholder="请输入手机号"
-        :rules="[{ required: true, message: '请输入手机号' }]"
+        :rules="mobileRules"
       >
         <template #left-icon>
           <span class="iconfont icon-shouji"></span>
@@ -25,16 +25,23 @@
         type="number"
         name="code"
         placeholder="请输入验证码"
-        :rules="[{ required: true, message: '请输入验证码' }]"
+        :rules="codeRules"
       >
         <template #left-icon>
           <span class="iconfont icon-yanzhengma"></span>
         </template>
-        <template #button>
+        <template #right-icon>
+          <van-count-down
+            v-if="isCountDown"
+            :time="3000"
+            @finish="isCountDown = false"
+          />
           <van-button
+            v-else
             size="small"
             text="获取验证码"
             class="code-btn"
+            @click.prevent="sendCode"
           ></van-button>
         </template>
       </van-field>
@@ -48,14 +55,18 @@
 </template>
 
 <script>
-import { login } from '@/api/user'
+import { login, sendCode } from '@/api/user'
+import { mobileRules, codeRules } from './rules'
 export default {
   name: 'Login',
 
   data() {
     return {
       mobile: '',
-      code: ''
+      code: '',
+      mobileRules,
+      codeRules,
+      isCountDown: null
     }
   },
 
@@ -66,8 +77,39 @@ export default {
       this.$router.back()
     },
     async login() {
-      const res = await login(this.mobile, this.code)
-      console.log(res)
+      this.$toast.loading({
+        message: '登录中...',
+        forbidClick: true
+      })
+      try {
+        const res = await login(this.mobile, this.code)
+        this.$store.commit('setUser', res.data.data)
+        this.$router.push('/profile')
+        this.$toast.success('登录成功')
+      } catch (err) {
+        const status = err.response.status
+        let message = '登录失败，请刷新~'
+        if (status === 400) {
+          message = err.response.data.message
+        }
+        this.$toast.fail(message)
+      }
+    },
+    async sendCode() {
+      try {
+        await this.$refs.form.validate('mobile')
+        await sendCode(this.mobile)
+        this.isCountDown = true
+      } catch (error) {
+        if (!error.response) {
+          this.$toast.fail('手机号格式不正确')
+        } else {
+          const status = error.response.status
+          if (status === 404 || status === 429) {
+            this.$toast.fail(error.response.data.message)
+          }
+        }
+      }
     }
   }
 }
