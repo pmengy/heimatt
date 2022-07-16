@@ -13,3 +13,10 @@ export const sendCode = (mobile) => {
     url: `/v1_0/sms/codes/${mobile}`
   })
 }
+
+// 获取用户个人信息
+export const getUserInfo = () => {
+  return request({
+    url: '/v1_0/user'
+  })
+}
