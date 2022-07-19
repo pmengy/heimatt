@@ -12,13 +12,28 @@
         <ArticleList :id="item.id"></ArticleList> </van-tab
     ></van-tabs>
     <!-- 更多的按钮 -->
-    <span class="iconfont icon-gengduo"></span>
+    <span class="iconfont icon-gengduo" @click="showPopup"></span>
+    <!-- 弹出层 -->
+    <EditChannelPopup
+      ref="popup"
+      :myChannels="myChannels"
+      @del-myChannel="delMyChannel"
+      @change-active="changeActive"
+      @add-myChannel="addMyChannel"
+    ></EditChannelPopup>
   </div>
 </template>
 
 <script>
-import { getMyChannel } from '@/api'
+import {
+  getMyChannel,
+  getMyChannelByLocal,
+  setMyChannelToLocal,
+  delMyChannel,
+  addMyChannel
+} from '@/api'
 import ArticleList from './components/ArticleList.vue'
+import EditChannelPopup from './components/EditChannelPopup.vue'
 export default {
   name: 'Home',
 
@@ -29,7 +44,13 @@ export default {
     }
   },
   components: {
-    ArticleList
+    ArticleList,
+    EditChannelPopup
+  },
+  computed: {
+    isLogin() {
+      return !!this.$store.state.user.token
+    }
   },
 
   created() {
@@ -40,11 +61,62 @@ export default {
     // 获取我的频道列表
     async getMyChannel() {
       try {
-        const { data } = await getMyChannel()
-        this.myChannels = data.data.channels
+        if (!this.isLogin) {
+          const myChannelsInLocal = getMyChannelByLocal()
+          if (myChannelsInLocal) {
+            this.myChannels = myChannelsInLocal
+          } else {
+            const { data } = await getMyChannel()
+            this.myChannels = data.data.channels
+          }
+        } else {
+          // 登录状态 请求接口获取频道
+          const { data } = await getMyChannel()
+          this.myChannels = data.data.channels
+        }
       } catch (error) {
         this.$toast('获取频道列表失败')
       }
+    },
+    // 展示弹出层
+    showPopup() {
+      this.$refs.popup.isShow = true
+    },
+    // 删除我的频道
+    async delMyChannel(id) {
+      this.myChannels = this.myChannels.filter((item) => item.id !== id)
+      if (!this.isLogin) {
+        // 离线状态,数据存储在本地存储中
+        setMyChannelToLocal(this.myChannels)
+      } else {
+        // 登录状态发请求
+        try {
+          await delMyChannel(id)
+        } catch (error) {
+          return this.$toast.fail('删除频道失败')
+        }
+      }
+      this.$toast.success('删除频道成功')
+    },
+    // 点击频道实现切换
+    changeActive(active) {
+      this.active = active
+    },
+    // 添加我的频道
+    async addMyChannel(channel) {
+      this.myChannels.push(channel)
+      if (!this.isLogin) {
+        // 离线状态发请求
+        setMyChannelToLocal(this.myChannels)
+      } else {
+        // 登录状态发请求
+        try {
+          await addMyChannel(channel.id, this.myChannels.length)
+        } catch (error) {
+          return this.$toast.fail('添加频道失败')
+        }
+      }
+      this.$toast.success('添加频道成功')
     }
   }
 }
@@ -122,5 +194,27 @@ export default {
     width: 1px;
     background-image: url('~@/assets/images/gradient-gray-line.png');
   }
+}
+// 头部固定的样式
+.navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+:deep(.van-tabs__wrap) {
+  position: sticky;
+  top: 92px;
+  left: 0;
+  z-index: 2;
+}
+.icon-gengduo {
+  position: fixed;
+  top: 92px;
+  z-index: 99;
+}
+
+:deep(.van-tabs__content) {
+  max-height: calc(100vh - 92px - 82px - 100px);
+  overflow: auto;
 }
 </style>

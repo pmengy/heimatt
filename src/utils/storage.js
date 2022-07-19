@@ -9,7 +9,7 @@ class Storage {
   get(key) {
     const value = localStorage.getItem(key)
     try {
-      JSON.parse(value)
+      return JSON.parse(value)
     } catch (error) {
       return value
     }
