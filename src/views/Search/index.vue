@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <!-- 搜索 -->
     <form action="/">
       <van-search
@@ -21,6 +21,7 @@
     <search-result></search-result> -->
     <component
       :is="componentName"
+      class="search-header"
       :keyWord="keyWord"
       @goSearch="searchSuggestions"
       @search="search"
@@ -101,9 +102,21 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.container {
+  position: relative;
+
+}
 .search {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  width: 100%;
   [role='button'] {
     color: #fff;
   }
+}
+.search-header {
+  margin-top: 120px;
 }
 </style>

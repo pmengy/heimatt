@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @click="$router.push(`/detail/${articleInfo.art_id}`)">
     <!-- 无图片 -->
     <van-cell
       v-if="articleInfo.cover.type === 0"

@@ -64,4 +64,8 @@ export default {
 }
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+html {
+  background-color: #f5f7f9;
+}
+</style>

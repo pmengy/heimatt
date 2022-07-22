@@ -185,6 +185,7 @@ export default {
   text-align: center;
   opacity: 0.6;
   border-bottom: 1px solid #eee;
+  background-color: #fff;
 
   &::after {
     content: '';

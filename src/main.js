@@ -11,10 +11,20 @@ import Vant from 'vant'
 import 'vant/lib/index.css'
 
 import 'amfe-flexible/index.min.js'
-
+import showdown from 'showdown'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/default.css'
+Vue.use(showdown)
 Vue.use(Vant)
 
 Vue.config.productionTip = false
+// 代码高亮
+Vue.directive('highlight', function (el) {
+  const blocks = el.querySelectorAll('pre code')
+  blocks.forEach((block) => {
+    hljs.highlightBlock(block)
+  })
+})
 
 new Vue({
   router,
