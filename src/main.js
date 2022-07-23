@@ -14,6 +14,7 @@ import 'amfe-flexible/index.min.js'
 import showdown from 'showdown'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/default.css'
+import dayjs from 'dayjs'
 Vue.use(showdown)
 Vue.use(Vant)
 
@@ -24,6 +25,10 @@ Vue.directive('highlight', function (el) {
   blocks.forEach((block) => {
     hljs.highlightBlock(block)
   })
+})
+
+Vue.filter('dataFormat', (val) => {
+  return dayjs(val).format('YYYY-MM-DD')
 })
 
 new Vue({

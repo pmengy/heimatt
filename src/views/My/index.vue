@@ -27,6 +27,7 @@
                 size="mini"
                 text="编辑资料"
                 class="code-btn"
+                @click="$router.push('/user')"
               ></van-button>
             </van-row>
           </van-col>

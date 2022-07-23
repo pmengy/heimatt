@@ -48,12 +48,15 @@
         </van-cell>
 
         <!-- 文章内容 -->
+        <!-- v-highlight -->
         <article
-          class="article-content markdown-body"
+          class="markdown-body article-content"
           v-highlight
           v-html="articleInfo.content"
         ></article>
         <van-divider>正文结束</van-divider>
+        <!-- 文章评论 -->
+        <Comments :art_id="id" id="comment"></Comments>
       </div>
       <!-- 加载失败：404 -->
       <div class="error-wrap" v-else-if="errorStatus === 404">
@@ -72,18 +75,28 @@
       <van-button class="comment-btn" type="default" round size="small"
         >写评论</van-button
       >
-      <van-icon name="comment-o" :info="articleInfo.comm_count" color="#777" />
       <van-icon
-        :color="isCollect ? '#e22829' : '#777'"
-        :name="isCollect ? 'star' : 'star-o'"
+        name="comment-o"
+        :info="articleInfo.comm_count"
+        color="#777"
+        @click="toComment('comment')"
+      />
+      <van-icon
+        :color="is_collected ? '#e22829' : '#777'"
+        :name="is_collected ? 'star' : 'star-o'"
         @click="collectArticle(articleInfo.art_id)"
       />
       <van-icon
-        :color="isLike ? '#e22829' : '#777'"
-        :name="isLike ? 'good-job' : 'good-job-o'"
+        :color="attitude === 1 ? '#e22829' : '#777'"
+        :name="attitude === 1 ? 'good-job' : 'good-job-o'"
         @click="likingArticle(articleInfo.art_id)"
       />
-      <van-icon name="share" color="#777"></van-icon>
+      <van-icon name="share" color="#777" @click="showShare = true"></van-icon>
+      <van-share-sheet
+        v-model="showShare"
+        title="把文章分享给好友"
+        :options="options"
+      />
     </div>
   </div>
 </template>
@@ -98,22 +111,39 @@ import {
   collectArticle,
   cancelCollectArticle
 } from '@/api'
-import '../../../node_modules/github-markdown-css/github-markdown.css'
+import '../../../node_modules/github-markdown-css/github-markdown-light.css'
 import dayjs from '@/utils/dayjs'
 import Header from './components/Header.vue'
+import Comments from './components/Comments.vue'
 
 export default {
   name: 'Detail',
   components: {
-    Header
+    Header,
+    Comments
   },
   data() {
     return {
       articleInfo: {},
       loading: true,
       errorStatus: null,
-      isLike: false,
-      isCollect: false,
+      showShare: false,
+      is_collected: false,
+      attitude: -1,
+      options: [
+        [
+          { name: '微信', icon: 'wechat' },
+          { name: '朋友圈', icon: 'wechat-moments' },
+          { name: '微博', icon: 'weibo' },
+          { name: 'QQ', icon: 'qq' }
+        ],
+        [
+          { name: '复制链接', icon: 'link' },
+          { name: '分享海报', icon: 'poster' },
+          { name: '二维码', icon: 'qrcode' },
+          { name: '小程序码', icon: 'weapp-qrcode' }
+        ]
+      ],
       id: this.$router.currentRoute.params.article_id
     }
   },
@@ -134,6 +164,8 @@ export default {
       try {
         const res = await getArticleInfo(this.id)
         this.articleInfo = res.data.data
+        this.is_collected = res.data.data.is_collected
+        this.attitude = res.data.data.attitude
       } catch (error) {
         if (error.response.status === 404) {
           this.errorStatus = 404
@@ -167,10 +199,10 @@ export default {
     // 点赞文章
     async likingArticle(id) {
       // 已经点赞过的时候就是要点击取消点赞
-      if (this.isLike) {
+      if (this.attitude === 1) {
         try {
           const res = await cancelLikingArticle(id)
-          this.isLike = false
+          this.attitude = -1
           this.$toast('取消点赞成功')
           console.log(res)
         } catch (error) {
@@ -185,7 +217,7 @@ export default {
         try {
           const res = await likingArticle(id)
           if (res.status === 201) {
-            this.isLike = true
+            this.attitude = 1
             this.$toast('点赞成功')
           }
         } catch (error) {
@@ -201,10 +233,10 @@ export default {
     // 收藏文章
     async collectArticle(id) {
       // 已经收藏过的时候就是要点击取消收藏
-      if (this.isCollect) {
+      if (this.is_collected) {
         try {
           const res = await cancelCollectArticle(id)
-          this.isCollect = false
+          this.is_collected = false
           this.$toast('取消收藏成功')
           console.log(res)
         } catch (error) {
@@ -219,7 +251,7 @@ export default {
         try {
           const res = await collectArticle(id)
           if (res.status === 201) {
-            this.isCollect = true
+            this.is_collected = true
             this.$toast('收藏成功')
           }
         } catch (error) {
@@ -231,6 +263,10 @@ export default {
           }
         }
       }
+    },
+    toComment(id) {
+      const scrollDom = document.getElementById(id)
+      scrollDom.scrollIntoView()
     }
   }
 }

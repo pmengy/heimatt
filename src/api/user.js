@@ -45,3 +45,26 @@ export const cancelFollowUser = (target) => {
     method: 'DELETE'
   })
 }
+
+/**
+ * 获取用户个人信息
+ * @returns Promise
+ */
+export const getUserDetailInfo = () => {
+  return request({
+    url: '/v1_0/user/profile'
+  })
+}
+
+/**
+ * 编辑个人信息
+ * @param {Object} data name gender birthday real_name intro
+ * @returns Promise
+ */
+export const editUserInfo = (data) => {
+  return request({
+    url: '/v1_0/user/profile',
+    method: 'PATCH',
+    data
+  })
+}
