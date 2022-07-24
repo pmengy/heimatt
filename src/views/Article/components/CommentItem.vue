@@ -5,17 +5,23 @@
       <div class="comment" v-for="(item, index) in commentList" :key="index">
         <van-cell>
           <div slot="title" class="author-focus">
-            <van-image width="50" height="50" :src="item.aut_photo" round />
+            <van-image width="40" height="40" :src="item.aut_photo" round />
             <div class="author-name-time">
               <span class="author">{{ item.aut_name }}</span>
             </div>
           </div>
-          <span slot="default" class="icon">
+          <span slot="default" class="icon" @click="likeComment(item.com_id)">
             <span
+              v-if="!item.is_liking"
               class="iconfont icon-dianzan"
               style="margin-right: 10px"
-            ></span
-            >赞
+            ></span>
+            <van-icon
+              v-else
+              name="good-job"
+              color="#e22829"
+              style="margin-right: 10px"
+            />{{ item.like_count ? item.like_count : '赞' }}
           </span>
         </van-cell>
         <div class="comment-content-time">
@@ -23,7 +29,7 @@
           <div class="comment-time">
             {{ item.pubdate | timeFromNow
             }}<span>
-              <van-button round @click="reply(item.com_id)"
+              <van-button round @click="reply(item)"
                 >回复 {{ item.reply_count }}</van-button
               >
             </span>
@@ -34,37 +40,24 @@
     <div v-else class="noComment">
       <p>期待你的评论~~</p>
     </div>
-    <!-- <Popup
-      @closePopup="showPopup = false"
-      :showPopup="showPopup"
-      :contentList="currentObj"
-    ></Popup> -->
-    <!-- 评论区域E -->
-    <!-- <Popup  @changeIsShow='showPopup=false' :showPopup=showPopup></Popup> -->
   </div>
 </template>
 
 <script>
 import dayjs from '@/utils/dayjs'
-// import Popup from '../components/Popup.vue'
+import { likeComment, cancelLikeComment, getCommentList } from '@/api'
 export default {
-  //   components: { Popup },
   name: 'CommentItem',
   props: {
     commentList: {
-      type: Array
-      //   required: true
-    },
-    showList: {
-      type: Array
+      type: Array,
+      required: true
     }
   },
   data() {
-    return {
-      //   showPopup: false,
-      currentObj: {}
-    }
+    return {}
   },
+
   filters: {
     timeFromNow(time) {
       return dayjs(time).fromNow()
@@ -74,36 +67,55 @@ export default {
   mounted() {},
 
   methods: {
-    // 回复评论
-    async reply(id) {
-      // 展开弹出层
-      console.log(id)
-      //   this.showPopup = true
-      // 显示弹出框
-
-      //  保存对应id的对象
-      const obj = this.commentList.find((item) => item.com_id === id)
-      console.log(obj)
-      this.currentObj = obj
-      //   this.currentObj.push(obj)
-      //   console.log(this.currentObj)
-      //   定义一个数组传输到遮罩层组件中
+    // 点赞评论
+    async likeComment(id) {
+      const index = this.commentList.findIndex((item) => item.com_id === id)
+      if (this.commentList[index].is_liking) {
+        try {
+          await cancelLikeComment(id)
+          this.$emit('dislike', index)
+          this.$toast('取消点赞成功')
+        } catch (error) {
+          if (error.status === 401) {
+            this.$toast.fail('登录身份过期,请重新登录')
+            this.$router.push('/login')
+          } else {
+            this.$toast.fail('网络不太稳定,请稍后再试')
+          }
+        }
+      } else {
+        try {
+          await likeComment(id)
+          this.$emit('like', index)
+          this.$toast('点赞成功')
+        } catch (error) {
+          if (error.status === 401) {
+            this.$toast.fail('登录身份过期,请重新登录')
+            this.$router.push('/login')
+          } else {
+            this.$toast.fail('网络不太稳定,请稍后再试')
+          }
+        }
+      }
+    },
+    async reply(item) {
+      this.$parent.$parent.$parent.show = true
+      this.$parent.$parent.$parent.currentComments = item
+      this.getCommentList()
+    },
+    async getCommentList() {
+      const res = await getCommentList({
+        type: 'c',
+        source: this.$parent.$parent.$parent.currentComments.com_id,
+        limit: 50
+      })
+      this.$store.commit('setReply', res.data.data.results)
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-.aplyContent {
-  background-color: #fff !important;
-  :deep(.van-icon) {
-    color: #1989fa !important;
-  }
-  span {
-    color: #323233;
-    font-size: 32px;
-  }
-}
 .author-focus {
   display: flex;
   align-items: center;

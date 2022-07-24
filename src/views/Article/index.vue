@@ -56,7 +56,12 @@
         ></article>
         <van-divider>正文结束</van-divider>
         <!-- 文章评论 -->
-        <Comments :art_id="id" id="comment"></Comments>
+        <Comments
+          :art_id="id"
+          id="comment"
+          ref="comments"
+          @publish="articleInfo.comm_count++"
+        ></Comments>
       </div>
       <!-- 加载失败：404 -->
       <div class="error-wrap" v-else-if="errorStatus === 404">
@@ -72,7 +77,12 @@
     </div>
     <!-- 底部区域 -->
     <div class="article-bottom">
-      <van-button class="comment-btn" type="default" round size="small"
+      <van-button
+        class="comment-btn"
+        type="default"
+        round
+        size="small"
+        @click="$refs.comments.showComment = true"
         >写评论</van-button
       >
       <van-icon
@@ -98,6 +108,14 @@
         :options="options"
       />
     </div>
+    <!-- 文章评论回复的弹出层 -->
+    <van-popup v-model="show" position="bottom" :style="{ height: '100%' }">
+      <Popup
+        ref="popup"
+        :currentComments="currentComments"
+        :art_id="id"
+      ></Popup>
+    </van-popup>
   </div>
 </template>
 
@@ -115,20 +133,24 @@ import '../../../node_modules/github-markdown-css/github-markdown-light.css'
 import dayjs from '@/utils/dayjs'
 import Header from './components/Header.vue'
 import Comments from './components/Comments.vue'
+import Popup from './components/Popup.vue'
 
 export default {
   name: 'Detail',
   components: {
     Header,
-    Comments
+    Comments,
+    Popup
   },
   data() {
     return {
       articleInfo: {},
+      currentComments: {},
       loading: true,
       errorStatus: null,
       showShare: false,
       is_collected: false,
+      show: false,
       attitude: -1,
       options: [
         [
