@@ -4,7 +4,7 @@ import store from '@/store'
 const request = axios.create({
   // 请求根路径
   baseURL: 'http://toutiao.itheima.net',
-  timeout: 3000
+  timeout: 120 * 1000
 })
 
 // 请求拦截器

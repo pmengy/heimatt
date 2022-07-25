@@ -2,16 +2,16 @@
   <div class="container">
     <Header title="个人信息"></Header>
     <van-cell-group class="main-cell">
-      <van-cell title="头像" is-link>
-        <van-uploader>
-          <van-image
-            round
-            width="0.8rem"
-            height="0.8rem"
-            :src="userInfo.photo"
-          />
-        </van-uploader>
-      </van-cell>
+      <van-cell title="头像" is-link @click="$refs.file.click()">
+        <van-image round width="0.8rem" height="0.8rem" :src="userInfo.photo"
+      /></van-cell>
+      <!-- 图片input框 -->
+      <input type="file" ref="file" hidden accept=".png,.jpg" />
+      <!-- 图片弹出层 -->
+      <van-popup v-model="showPhoto" v-if="showPhoto">
+        <PopupCropper :photo="photo" @setPhoto="setPhoto"></PopupCropper>
+      </van-popup>
+
       <van-cell title="昵称" is-link @click="showName = true">
         {{ userInfo.name }}
       </van-cell>
@@ -22,6 +22,7 @@
         userInfo.birthday | dataFormat
       }}</van-cell>
     </van-cell-group>
+
     <!-- 年月日选择器 -->
     <van-popup
       v-model="showDate"
@@ -83,19 +84,23 @@
 
 <script>
 import Header from './components/Header.vue'
+import PopupCropper from './components/PopupCropper.vue'
 import { getUserDetailInfo, editUserInfo } from '@/api'
 import dayjs from 'dayjs'
 export default {
   name: 'User',
   components: {
-    Header
+    Header,
+    PopupCropper
   },
   data() {
     return {
       userInfo: {},
       showDate: false,
+      photo: '',
       showGender: false,
       showName: false,
+      showPhoto: false,
       minDate: new Date(1900, 0, 1),
       maxDate: new Date(2035, 10, 1),
       currentDate: new Date(2000, 0, 17)
@@ -104,6 +109,17 @@ export default {
 
   created() {
     this.getUserDetailInfo()
+  },
+  mounted() {
+    this.$refs.file.addEventListener('change', (e) => {
+      const file = e.target.files[0]
+      const fr = new FileReader()
+      fr.readAsDataURL(file)
+      fr.onload = (e) => {
+        this.photo = e.target.result
+        this.showPhoto = true
+      }
+    })
   },
 
   methods: {
@@ -162,6 +178,10 @@ export default {
           this.$toast.fail('个人信息修改失败,请重试')
         }
       }
+    },
+    setPhoto(val) {
+      this.userInfo.photo = val
+      this.showPhoto = false
     }
   }
 }

@@ -21,7 +21,7 @@
       :style="{ height: '20%' }"
       ><van-field
         style="flex: 9"
-        v-model="content"
+        v-model.trim="content"
         rows="2"
         :autosize="{ minHeight: 100 }"
         type="textarea"

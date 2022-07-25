@@ -68,3 +68,19 @@ export const editUserInfo = (data) => {
     data
   })
 }
+
+/**
+ * 修改用户头像
+ * @param {file} photo 头像
+ * @returns Promise
+ */
+export const editUserPhoto = (photo) => {
+  return request({
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    },
+    url: '/v1_0/user/photo',
+    method: 'PATCH',
+    data: { photo }
+  })
+}

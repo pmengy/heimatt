@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="position: relative">
     <van-nav-bar
       class="navbar-fixed-top"
       :title="
@@ -60,7 +60,11 @@
     </div>
     <!-- 回复 -->
     <div style="padding-bottom: 45px; padding-bottom: 55px">
-      <div class="comment" v-for="(item, index) in $store.state.reply" :key="index">
+      <div
+        class="comment"
+        v-for="(item, index) in $store.state.reply"
+        :key="index"
+      >
         <van-cell>
           <div slot="title" class="author-focus">
             <van-image width="40" height="40" :src="item.aut_photo" round />
@@ -94,14 +98,15 @@
       <!-- 发布评论 -->
       <van-button
         type="primary"
-        @click="showComment = true"
+        @click="showReply = true"
         size="large"
         style="width: 100%; height: 50px; position: fixed; left: 0; bottom: 0"
         >发布</van-button
       >
+
       <van-popup
         style="display: flex; padding-top: 0.4rem"
-        v-model="showComment"
+        v-model="showReply"
         position="bottom"
         :style="{ height: '20%' }"
         ><van-field
@@ -129,18 +134,14 @@
 
 <script>
 import dayjs from '@/utils/dayjs'
-import {
-  publishComment,
-  likeComment,
-  cancelLikeComment
-} from '@/api'
+import { publishComment, likeComment, cancelLikeComment } from '@/api'
 export default {
   name: 'Popup',
 
   data() {
     return {
       content: '',
-      showComment: false
+      showReply: false
     }
   },
   props: {
@@ -158,22 +159,21 @@ export default {
       return dayjs(time).fromNow()
     }
   },
-  created() {
-  },
+  created() {},
 
   methods: {
     // 回复评论
     async publishReply() {
-      this.showComment = true
+      this.showReply = false
+      const reply = this.$store.state.reply
       const res = await publishComment({
         target: this.currentComments.com_id,
         content: this.content,
         art_id: this.art_id
       })
       this.$toast.success('回复成功')
-      this.reply.unshift(res.data.data.new_obj)
+      reply.unshift(res.data.data.new_obj)
       this.content = ''
-      this.showComment = false
     },
     // 点赞回复
     async likeComment(id) {
